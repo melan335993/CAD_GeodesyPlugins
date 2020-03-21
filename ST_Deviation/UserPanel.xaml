@@ -1,0 +1,28 @@
+﻿<Window x:Class="mavCAD.UserPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:mavCAD"
+           
+            HorizontalAlignment="Center" VerticalAlignment="Center" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" MinHeight="350" MinWidth="450" MaxHeight="350" MaxWidth="450" Title="Плановые отклонения                                                Автор: Мельников А.В." Width="450" Height="250">
+    <Grid Margin="5" Height="300" Width="400" MaxHeight="300" MaxWidth="400">
+        <TextBlock  TextWrapping="Wrap" Margin="5,5,145,5" FontSize="11"><Run Text="Введите допустимое"/><Run Text=" плановое"/><Run Text=" отклонение от проекта ("/><Run Text="м"/><Run Text="): "/><LineBreak/><Run/><LineBreak/><Run Text="Введите допустимое"/><Run Text=" "/><Run Text="отклонение от "/><Run Text="вертикальной плоскости "/><Run Text="("/><Run Text="м"/><Run Text="): "/><LineBreak/><Run/><LineBreak/><Run Text="Введите максимальное расстояние, при котором будут просчитываться отклонения ("/><Run Text="м"/><Run Text="):"/><LineBreak/><Run/><LineBreak/><Run Text="Выберите слой, содержащий проектный контур"/><LineBreak/><Run Text="(полилинии)"/><LineBreak/><Run/><LineBreak/><Run Text="Выберите слой, содержащий точки съемки"/><LineBreak/><Run Text="("/><Run Text="Точки снятые по нижнему сечению должны быть синего цвета, "/><Run Text="а по верхнему сечению - фиолетового"/><Run Text=")"/><LineBreak/><Run/><LineBreak/><Run Text="Высота "/><Run Text="текста (м):"/></TextBlock>
+
+        <TextBox Height="20"  TextAlignment="Center" Margin="262,9,5,271" FontWeight="Bold" Name="textbox_deviationRed" Text="0.015"/>
+        <TextBox Height="20"  TextAlignment="Center" Margin="262,53,5,227" FontWeight="Bold" Name="textbox_deviationRedAngle" Text="0.015"/>
+        <TextBox Height="20" Margin="262,96,5,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Bold" TextAlignment="Center" Name="textbox_deviationCreate" Text="0.100"/>
+        <TextBox HorizontalAlignment="Left" Height="20" Margin="157,253,0,0" TextWrapping="Wrap" Text="0.250" FontWeight="Bold" TextAlignment="Center" VerticalAlignment="Top" Width="75" Name="textbox_blockScale"/>
+
+        <Button Margin="60,5"  Width="50" Content="Ок" HorizontalAlignment="Right" VerticalAlignment="Bottom" VerticalContentAlignment="Bottom" Name="btn_Ok" Click="Btn_Ok_Click"/>
+        <Button Margin="5"  Width="50" Content="Отмена" HorizontalAlignment="Right" VerticalAlignment="Bottom" VerticalContentAlignment="Bottom" Name="btn_Cancel" Click="Btn_Cancel_Click"/>
+
+        <ComboBox Margin="262,141,5,139" Height="20"  Name="ComboPlines" />
+        <ComboBox Height="20" Margin="262,184,5,96" Name="ComboPoints"  />
+
+
+    </Grid>
+
+
+
+</Window>
