@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // Общие сведения об этой сборке предоставляются следующим набором
 // набора атрибутов. Измените значения этих атрибутов для изменения сведений,
 // связанные со сборкой.
-[assembly: AssemblyTitle("PP_Deviation")]
-[assembly: AssemblyDescription("Программа для отрисовки плановых отклонений от полилиний")]
+[assembly: AssemblyTitle("Deviations")]
+[assembly: AssemblyDescription("Программа для отрисовки отклонений точек от полилиний")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("PP_Deviation")]
-[assembly: AssemblyCopyright("Copyright © Melnikov A.V., 2019")]
+[assembly: AssemblyProduct(".net 4.5")]
+[assembly: AssemblyCopyright("Copyright © Melnikov A.V., 2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

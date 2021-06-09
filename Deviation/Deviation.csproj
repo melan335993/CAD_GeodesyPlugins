@@ -8,8 +8,8 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>myCAD</RootNamespace>
-    <AssemblyName>PP_Deviation</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <AssemblyName>Deviations</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -33,21 +33,28 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="accoremgd">
-      <HintPath>..\Библиотеки для AutoCAD\accoremgd.dll</HintPath>
+    <Reference Include="AcCoreMgd">
+      <HintPath>..\..\ACAD SDK\inc\AcCoreMgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="acdbmgd">
-      <HintPath>..\Библиотеки для AutoCAD\acdbmgd.dll</HintPath>
+    <Reference Include="AcDbMgd">
+      <HintPath>..\..\ACAD SDK\inc\AcDbMgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="acmgd">
-      <HintPath>..\Библиотеки для AutoCAD\acmgd.dll</HintPath>
+    <Reference Include="AcMgd">
+      <HintPath>..\..\ACAD SDK\inc\AcMgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="AcMPolygonMGD">
-      <HintPath>..\Библиотеки для AutoCAD\AcMPolygonMGD.dll</HintPath>
+    <Reference Include="hostdbmgd">
+      <HintPath>..\..\NC_SDK_21.0.5699.3427.5753\include-x64\hostdbmgd.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="hostmgd">
+      <HintPath>..\..\NC_SDK_21.0.5699.3427.5753\include-x64\hostmgd.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="nrxgatemgd">
+      <HintPath>..\..\NC_SDK_21.0.5699.3427.5753\include-x64\nrxgatemgd.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -67,15 +74,22 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PP_Deviation.cs" />
     <Compile Include="FastCAD.cs" />
+    <Compile Include="Deviation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UserPanel.xaml.cs">
-      <DependentUpon>UserPanel.xaml</DependentUpon>
+    <Compile Include="PPDialog.xaml.cs">
+      <DependentUpon>PPDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="STDialog.xaml.cs">
+      <DependentUpon>STDialog.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="UserPanel.xaml">
+    <Page Include="PPDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="STDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

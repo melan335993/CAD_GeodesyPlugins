@@ -446,16 +446,16 @@ namespace mavCAD
                 List<Line> closestLines = MyMakeClosestLines(toleranceCreateClosestLines, layerPoints, layerPoly); // получаем список кратчайших отрезков от точки до полилинии
                 List<Polyline> selectedPolylines = MyTakePolylines(layerPoly); // получаем список полилиний из чертежа
 
-                foreach (Line l in closestLines) // вставляем блоки на каждой линии
+                foreach (Line clLine in closestLines) // вставляем блоки на каждой линии
                 {
                     Matrix3d curUCSMatrix = ed.CurrentUserCoordinateSystem; // получаем текущую матрицу координат
                     CoordinateSystem3d curUCS = curUCSMatrix.CoordinateSystem3d; // получаем текущую пользовательскую систему координат
 
                     BlockTableRecord blockDef = bt["arrowDinoBlockRPL"].GetObject(OpenMode.ForRead) as BlockTableRecord; // получаем определение блока в таблице с именем "arrowDinoBlockRPL"
-                    BlockReference br = new BlockReference(l.EndPoint, bt["arrowDinoBlockRPL"]); // вставляем блок в пространство модели в точку конца отрезка
+                    BlockReference blockRef = new BlockReference(clLine.EndPoint, bt["arrowDinoBlockRPL"]); // вставляем блок в пространство модели в точку конца отрезка
 
-                    ms.AppendEntity(br);
-                    tr.AddNewlyCreatedDBObject(br, true);
+                    ms.AppendEntity(blockRef);
+                    tr.AddNewlyCreatedDBObject(blockRef, true);
 
                     // Вставляем в блок атрибуты с отклонениями
                     foreach (ObjectId id in blockDef)
@@ -467,21 +467,21 @@ namespace mavCAD
                             // Создаём новый AttributeReference
                             using (AttributeReference attRef = new AttributeReference())
                             {
-                                attRef.SetAttributeFromBlock(attDef, br.BlockTransform);
+                                attRef.SetAttributeFromBlock(attDef, blockRef.BlockTransform);
                                 if (attRef.Tag == "ОТКЛ")
-                                    attRef.TextString = string.Format("{0:0}", l.Length * 1000); // устанавливаем значение атрибута ОТКЛОНЕНИЕ в мм
+                                    attRef.TextString = string.Format("{0:0}", clLine.Length * 1000); // устанавливаем значение атрибута ОТКЛОНЕНИЕ в мм
                                 // Добавляем AttributeReference к BlockReference
-                                br.AttributeCollection.AppendAttribute(attRef);
+                                blockRef.AttributeCollection.AppendAttribute(attRef);
                                 tr.AddNewlyCreatedDBObject(attRef, true);
                             }
                         }
                     }
 
                     // Меняем направление стрелки в динамическом блоке
-                    if (!((l.Angle * (180 / PI)) > 90.0 && (l.Angle * (180 / PI)) <= 270.0))
+                    if (!isRightDirection(clLine.Angle))
                     {
                         // Перебираем коллекцию всех параметров динамического блока
-                        foreach (DynamicBlockReferenceProperty prop in br.DynamicBlockReferencePropertyCollection)
+                        foreach (DynamicBlockReferenceProperty prop in blockRef.DynamicBlockReferencePropertyCollection)
                         {
                             object[] values = prop.GetAllowedValues();
 
@@ -495,24 +495,10 @@ namespace mavCAD
                         }
                     }
 
-                    br.TransformBy(Matrix3d.Rotation((MyCorrectAngle(l.Angle)), curUCS.Zaxis, l.EndPoint)); // поворачиваем блок
-                    br.TransformBy(Matrix3d.Scaling(blockScale, l.EndPoint)); // изменяем масштаб блока
+                    blockRef.TransformBy(Matrix3d.Rotation((MyCorrectAngle(clLine.Angle)), curUCS.Zaxis, clLine.EndPoint)); // поворачиваем блок
+                    blockRef.TransformBy(Matrix3d.Scaling(blockScale, clLine.EndPoint)); // изменяем масштаб блока
 
-                    if (l.Length > toleranceRED) // Выделяем косяки
-                    {
-                        MyNewLayer("!Вне допуска");
-                        Circle c = new Circle();
-                        c.Center = l.EndPoint;
-                        c.Radius = 2.4 * blockScale; // 2.4 - длина стрелки, чтобы описывала блок
-                        c.Layer = "!Вне допуска";
-                        c.Color = Color.FromColorIndex(ColorMethod.None, 1);
-                        c.LineWeight = (LineWeight)30;
-                        ms.AppendEntity(c);
-                        tr.AddNewlyCreatedDBObject(c, true);
-                        br.Color = Color.FromColorIndex(ColorMethod.None, 1);
-                    }
-
-                    br.Layer = layerBlockName;
+                    blockRef.Layer = layerBlockName;
 
                     // Коллекция точек пересечения блока и полилинии
                     Point3dCollection intersectionPoints = new Point3dCollection();
@@ -520,27 +506,44 @@ namespace mavCAD
                     // Проверям не заползает ли блок на полилинию, если да, то смещаем на длину блока
                     foreach (Polyline pl in selectedPolylines)
                     {
-                        Line disLine = new Line(new Point3d(0, 0, 0), new Point3d(2.4 * blockScale, 0, 0)); // получаем отрезок длинной в стрелку
+                        Line tempLine = new Line(new Point3d(0, 0, 0), new Point3d(2.4 * blockScale, 0, 0)); // получаем отрезок длинной в стрелку
 
                         // перемещаем и поворачиваем отрезок на блок
-                        Vector3d acVec1 = disLine.StartPoint.GetVectorTo(l.EndPoint);
-                        disLine.TransformBy(Matrix3d.Displacement(acVec1));
-                        disLine.TransformBy(Matrix3d.Rotation((MyCorrectAngle(l.Angle)), curUCS.Zaxis, disLine.StartPoint));
+                        Vector3d acVec1 = tempLine.StartPoint.GetVectorTo(clLine.EndPoint);
+                        tempLine.TransformBy(Matrix3d.Displacement(acVec1));
+                        tempLine.TransformBy(Matrix3d.Rotation((MyCorrectAngle(clLine.Angle)), curUCS.Zaxis, tempLine.StartPoint));
 
                         // проверяем пересечается ли отрезок с полилинией и выводит точки пересечения в intersectionPoints
-                        disLine.IntersectWith(pl, Intersect.OnBothOperands, new Plane(), intersectionPoints, IntPtr.Zero, IntPtr.Zero);
+                        tempLine.IntersectWith(pl, Intersect.OnBothOperands, new Plane(), intersectionPoints, IntPtr.Zero, IntPtr.Zero);
 
                         // Если блок пересечает стену, смещаем его на его же длину
                         if (intersectionPoints.Count > 1)
                         {
-                            Vector3d acVec2 = disLine.EndPoint.GetVectorTo(disLine.StartPoint);
-                            disLine.TransformBy(Matrix3d.Displacement(acVec2));
+                            Vector3d acVec2 = tempLine.EndPoint.GetVectorTo(tempLine.StartPoint);
+                            tempLine.TransformBy(Matrix3d.Displacement(acVec2));
 
-                            Vector3d acVec3 = br.Position.GetVectorTo(disLine.StartPoint);
-                            br.TransformBy(Matrix3d.Displacement(acVec3));
+                            Vector3d acVec3 = blockRef.Position.GetVectorTo(tempLine.StartPoint);
+                            blockRef.TransformBy(Matrix3d.Displacement(acVec3));
                         }
                     }
-                    l.Erase(); // удаляем все кратчайшие отрезки 
+
+                    clLine.Erase(); // удаляем все кратчайшие отрезки 
+
+                   //----------------------------------ВЫДЕЛЯЕМ КОСЯКИ ---------------------------------------------------------------------------------
+
+                    if (clLine.Length > toleranceRED) // Выделяем косяки
+                    {
+                        MyNewLayer("!Вне допуска");
+                        Circle c = new Circle();
+                        c.Center = clLine.EndPoint;
+                        c.Radius = 2.4 * blockScale; // 2.4 - длина стрелки
+                        c.Layer = "!Вне допуска";
+                        c.Color = Color.FromColorIndex(ColorMethod.None, 1);
+                        c.LineWeight = (LineWeight)30;
+                        ms.AppendEntity(c);
+                        tr.AddNewlyCreatedDBObject(c, true);
+                        blockRef.Color = Color.FromColorIndex(ColorMethod.None, 1);
+                    }
                 } // foreach closestlines
                 tr.Commit();
             }
@@ -728,19 +731,19 @@ namespace mavCAD
                             {
                                 Line tempLine = new Line(new Point3d(0, 0, 0), new Point3d(2.4 * blockScale, 0, 0)); // 2.4 - длина стрелки в блоке
 
-                                Vector3d acVec1 = tempLine.StartPoint.GetVectorTo(lDown.EndPoint);                                                           // ???
-                                tempLine.TransformBy(Matrix3d.Displacement(acVec1));                                                                         // ???
-                                tempLine.TransformBy(Matrix3d.Rotation((MyCorrectAngle(lDown.Angle)), curUCS.Zaxis, tempLine.StartPoint));                   // ???
-                                                                                                                                                             // ???
-                                tempLine.IntersectWith(plWall, Intersect.OnBothOperands, new Plane(), intersectionPoints, IntPtr.Zero, IntPtr.Zero);         // ???
-                                                                                                                                                             // ???
-                                if (intersectionPoints.Count > 1)                                                                                            // ???
-                                {                                                                                                                            // ???
-                                    Vector3d acVec2 = tempLine.EndPoint.GetVectorTo(tempLine.StartPoint);                                                    // ???
-                                    tempLine.TransformBy(Matrix3d.Displacement(acVec2));                                                                     // ???
-                                                                                                                                                             // ???
-                                    Vector3d acVec3 = blockRef.Position.GetVectorTo(tempLine.StartPoint);                                                    // ???
-                                    blockRef.TransformBy(Matrix3d.Displacement(acVec3));                                                                     // ???
+                                Vector3d acVec1 = tempLine.StartPoint.GetVectorTo(lDown.EndPoint);                                                         
+                                tempLine.TransformBy(Matrix3d.Displacement(acVec1));                                                                       
+                                tempLine.TransformBy(Matrix3d.Rotation((MyCorrectAngle(lDown.Angle)), curUCS.Zaxis, tempLine.StartPoint));                 
+                                                                                                                                                           
+                                tempLine.IntersectWith(plWall, Intersect.OnBothOperands, new Plane(), intersectionPoints, IntPtr.Zero, IntPtr.Zero);       
+                                                                                                                                                           
+                                if (intersectionPoints.Count > 1)                                                                                          
+                                {                                                                                                                          
+                                    Vector3d acVec2 = tempLine.EndPoint.GetVectorTo(tempLine.StartPoint);                                                  
+                                    tempLine.TransformBy(Matrix3d.Displacement(acVec2));                                                                   
+                                                                                                                                                           
+                                    Vector3d acVec3 = blockRef.Position.GetVectorTo(tempLine.StartPoint);                                                  
+                                    blockRef.TransformBy(Matrix3d.Displacement(acVec3));                                                                   
                                 }                                                                                                                            
                             }
 
@@ -752,7 +755,23 @@ namespace mavCAD
                                     tempDisUpTolerance = lUp.Length;
                             }
 
-                            if (lDown.Length > tolerancePlaneRED || tempDisUpTolerance > tolerancePlaneRED)
+
+                            bool isBadDeviation = false;
+
+                            if (isRightDown == isRightUp)
+                            {
+                                if (lDown.Length > tolerancePlaneRED || tempDisUpTolerance > tolerancePlaneRED)
+                                    isBadDeviation = true;
+                            }
+                            else
+                            {
+                                tempDisAngleTolerance = (tempDisUpTolerance + lDown.Length);
+
+                                if (lDown.Length > tolerancePlaneRED || tempDisUpTolerance > tolerancePlaneRED || tempDisAngleTolerance > toleranceAngleRED)
+                                    isBadDeviation = true;
+                            }
+
+                            if (isBadDeviation)
                             {
                                 MyNewLayer("!Вне допуска");
                                 Circle c = new Circle();
