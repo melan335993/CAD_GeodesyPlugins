@@ -1,4 +1,4 @@
-﻿//#define ACAD
+﻿#define ACAD
 
 #if ACAD
 using Autodesk.AutoCAD.ApplicationServices;
@@ -9,7 +9,7 @@ using HostMgd.ApplicationServices;
 using HostMgd.EditorInput;
 using Teigha.Runtime;
 #endif
-
+ 
 namespace mavCAD
 {
     public class Deviation

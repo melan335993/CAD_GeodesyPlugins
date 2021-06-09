@@ -1,4 +1,4 @@
-﻿//#define ACAD
+﻿#define ACAD
 
 using System;
 using System.Collections.Generic;
