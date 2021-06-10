@@ -1,4 +1,4 @@
-﻿#define ACAD
+﻿//#define ACAD
 
 using System;
 using System.Collections.Generic;
@@ -24,13 +24,13 @@ namespace mavCAD
         const double PI = Math.PI;
 
         // Свойства для связи с интерфейсом
-        public string selectedLayerPlines { get; set; }
-        public string selectedLayerPoints { get; set; }
-        public List<string> listLayers { get; set; }
-        public double deviationRed { get; set; }
-        public double deviationRedAngle { get; set; }
-        public double deviationCreate { get; set; }
-        public double blockScale { get; set; }
+        public string       selectedLayerPlines { get; set; }
+        public string       selectedLayerPoints { get; set; }
+        public List<string> listLayers          { get; set; }
+        public double       toleranceRed        { get; set; }
+        public double       toleranceRedAngle   { get; set; }
+        public double       toleranceCreate     { get; set; }
+        public double       blockScale          { get; set; }
 
         /// <summary>
         /// Cоздание слоя 
@@ -206,13 +206,10 @@ namespace mavCAD
                 List<Polyline> listPlines = MyTakePolylines(layerLines);
                 List<DBPoint> listPoints = MyTakePoints(layerPoints);
 
-                for (int i = 0; i < listPoints.Count; i++) // перебираем точки
+                foreach(DBPoint point in listPoints)
                 {
-                    for (int j = 0; j < listPlines.Count; j++) // перебераем полилинии для каждой точки
+                    foreach (Polyline acPoly in listPlines)
                     {
-                        Polyline acPoly = listPlines[j]; // присваиваем jтовую полилинию
-                        DBPoint point = listPoints[i]; // присваиваем iтовую точку
-
                         // определяем координаты ближайшей точки к полилинии
                         Point3d closestPoint = acPoly.GetClosestPointTo(point.Position, false);
 
@@ -424,13 +421,8 @@ namespace mavCAD
         /// <summary>
         /// Отклонение от проекта для плит перекрытий
         /// </summary>
-        public void MyDeviationPP(double blockScale = 0.25,
-                                  double toleranceRED = 0.020,
-                                  string layerBlockName = "Плановые отклонения",
-                                  double toleranceCreateClosestLines = 0.1,
-                                  string layerPoly = "Плиты",
-                                  string layerPoints = "Точки",
-                                  string pathToBlock = @"C:\arrowBlocks\arrowDinoBlocks.dwg")
+        public void MyDeviationPP(string layerBlockName = "Плановые отклонения",
+                                  string pathToBlock = @"C:\arrowDinoBlocks\arrowDinoBlocks.dwg")
         {
             Document doc = Application.DocumentManager.MdiActiveDocument; // получаем ссылку на активный документ
             Editor ed = doc.Editor;
@@ -443,8 +435,8 @@ namespace mavCAD
                 MyNewLayer(layerBlockName); // создаем новый слой
                 MyInsertBlock(pathToBlock); // всталяем наши блоки из DWG
 
-                List<Line> closestLines = MyMakeClosestLines(toleranceCreateClosestLines, layerPoints, layerPoly); // получаем список кратчайших отрезков от точки до полилинии
-                List<Polyline> selectedPolylines = MyTakePolylines(layerPoly); // получаем список полилиний из чертежа
+                List<Line> closestLines = MyMakeClosestLines(toleranceCreate, selectedLayerPoints, selectedLayerPlines); // получаем список кратчайших отрезков от точки до полилинии
+                List<Polyline> selectedPolylines = MyTakePolylines(selectedLayerPlines); // получаем список полилиний из чертежа
 
                 foreach (Line clLine in closestLines) // вставляем блоки на каждой линии
                 {
@@ -531,7 +523,7 @@ namespace mavCAD
 
                    //----------------------------------ВЫДЕЛЯЕМ КОСЯКИ ---------------------------------------------------------------------------------
 
-                    if (clLine.Length > toleranceRED) // Выделяем косяки
+                    if (clLine.Length > toleranceRed) // Выделяем косяки
                     {
                         MyNewLayer("!Вне допуска");
                         Circle c = new Circle();
@@ -552,14 +544,8 @@ namespace mavCAD
         /// <summary>
         /// Отклонение от проекта для стен в верхнем и нижнем сечении
         /// </summary>
-        public void MyDeviationST(double blockScale = 0.25,
-                                      double tolerancePlaneRED = 0.015,
-                                      double toleranceAngleRED = 0.015,
-                                      string layerBlockName = "Плановые отклонения",
-                                      double toleranceCreateClosestLines = 0.1,
-                                      string layerPoly = "Стены",
-                                      string layerPoints = "Точки",
-                                      string pathToBlock = @"C:\arrowBlocks\arrowDinoBlocks.dwg")
+        public void MyDeviationST(string layerBlockName = "Плановые отклонения [В] [Н]",
+                                  string pathToBlock = @"C:\arrowDinoBlocks\arrowDinoBlocks.dwg")
         {
             Document doc = Application.DocumentManager.MdiActiveDocument; // получаем ссылку на активный документ
             Editor ed = doc.Editor;
@@ -572,15 +558,14 @@ namespace mavCAD
                 MyNewLayer(layerBlockName); // создаем новый слой
                 MyInsertBlock(pathToBlock); // всталяем наши блоки из DWG
 
-                List<Line> allClosestLines = MyMakeClosestLines(toleranceCreateClosestLines, layerPoints, layerPoly); // получаем список кратчайших отрезков от точки до полилинии
-                List<Polyline> selectedPolylines = MyTakePolylines(layerPoly); // получаем список полилиний из чертежа
+                List<Line> allClosestLines = MyMakeClosestLines(toleranceCreate, selectedLayerPoints, selectedLayerPlines); // получаем список кратчайших отрезков от точки до полилинии
+                List<Polyline> selectedPolylines = MyTakePolylines(selectedLayerPlines); // получаем список полилиний из чертежа
 
                 // Создаем два списка чтобы разбить список на верх и низ               
                 List<Line> closestLinesDown = new List<Line>();
                 List<Line> closestLinesUp = new List<Line>();
 
                 List<Line> closestLinesDownToUp = new List<Line>();
-
 
                 string disUp = "??";                // отклонение верхней стрелки
                 string disDown = "??";              // отклонение нижней стрелки
@@ -760,14 +745,14 @@ namespace mavCAD
 
                             if (isRightDown == isRightUp)
                             {
-                                if (lDown.Length > tolerancePlaneRED || tempDisUpTolerance > tolerancePlaneRED)
+                                if (lDown.Length > toleranceRed || tempDisUpTolerance > toleranceRed)
                                     isBadDeviation = true;
                             }
                             else
                             {
                                 tempDisAngleTolerance = (tempDisUpTolerance + lDown.Length);
 
-                                if (lDown.Length > tolerancePlaneRED || tempDisUpTolerance > tolerancePlaneRED || tempDisAngleTolerance > toleranceAngleRED)
+                                if (lDown.Length > toleranceRed || tempDisUpTolerance > toleranceRed || tempDisAngleTolerance > toleranceRedAngle)
                                     isBadDeviation = true;
                             }
 
@@ -891,7 +876,7 @@ namespace mavCAD
 
                     //---------------------------------- ВЫДЕЛЯЕМ КОСЯКИ ---------------------------------------------------------------------------------
 
-                    if (clLine.Length > tolerancePlaneRED)
+                    if (clLine.Length > toleranceRed)
                     {
                         MyNewLayer("!Вне допуска");
                         Circle c = new Circle();

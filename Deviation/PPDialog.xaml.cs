@@ -33,8 +33,8 @@ namespace mavCAD
             _data.selectedLayerPlines = ComboPlines.Text;
             _data.selectedLayerPoints = ComboPoints.Text;
 
-            _data.deviationRed = ParseToDoubleDotOrComma(textbox_deviationRed.Text);
-            _data.deviationCreate = ParseToDoubleDotOrComma(textbox_deviationCreate.Text);
+            _data.toleranceRed = ParseToDoubleDotOrComma(textbox_deviationRed.Text);
+            _data.toleranceCreate = ParseToDoubleDotOrComma(textbox_deviationCreate.Text);
             _data.blockScale = ParseToDoubleDotOrComma(textbox_blockScale.Text);
             
             this.DialogResult = true;
