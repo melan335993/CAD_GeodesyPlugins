@@ -49,7 +49,7 @@ namespace mavCAD
         }
 
         /// <summary>
-        /// Обработчик ввода с клавиатуры, разрешается вводить только цифры
+        /// Обработчик ввода с клавиатуры, разрешается вводить только цифры и только одну точку или запятую
         /// </summary>
         private void textbox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {

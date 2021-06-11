@@ -745,7 +745,11 @@ namespace mavCAD
 
                             if (isRightDown == isRightUp)
                             {
-                                if (lDown.Length > toleranceRed || tempDisUpTolerance > toleranceRed)
+                                double disAngleTolerance = lDown.Length - tempDisUpTolerance;
+                                if (disAngleTolerance < 0)
+                                    disAngleTolerance *= -1;
+
+                                if (lDown.Length > toleranceRed || tempDisUpTolerance > toleranceRed || disAngleTolerance > toleranceRedAngle)
                                     isBadDeviation = true;
                             }
                             else
